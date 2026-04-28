@@ -1,4 +1,3 @@
-const { Pool } = require('pg');
 const express = require('express');
 const app = express();
 const { Sequelize, DataTypes } = require('sequelize');
