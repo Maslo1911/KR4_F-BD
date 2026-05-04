@@ -1,0 +1,48 @@
+services:
+
+  # Nginx — балансировщик нагрузки
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"          # пробрасываем порт 80 хоста → порт 80 контейнера
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf   # монтируем наш конфиг вместо дефолтного
+    networks:
+      - app-network
+    depends_on:
+      - backend1
+      - backend2
+      - backend3
+
+  # Backend сервер 1
+  backend1:
+    build: ./backend     # собираем образ из папки ./backend (там лежит Dockerfile)
+    environment:
+      - PORT=3000
+      - SERVER_ID=1      # передаём идентификатор — сервер вернёт {"server": "backend-1"}
+    networks:
+      - app-network
+
+  # Backend сервер 2 — идентичный образ, другой SERVER_ID
+  backend2:
+    build: ./backend
+    environment:
+      - PORT=3000
+      - SERVER_ID=2
+    networks:
+      - app-network
+
+  # Backend сервер 3 — резервный (backup в nginx.conf)
+  backend3:
+    build: ./backend
+    environment:
+      - PORT=3000
+      - SERVER_ID=3
+    networks:
+      - app-network
+
+# Общая сеть для всех контейнеров
+# Благодаря ей контейнеры видят друг друга по именам сервисов (backend1, backend2...)
+networks:
+  app-network:
+    driver: bridge
